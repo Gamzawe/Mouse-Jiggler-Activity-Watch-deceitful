@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <PublishSingleFile>true</PublishSingleFile>
+    <AssemblyName>LogiOptions</AssemblyName>
+    <Company>Accessibility Tools Foundation</Company>
+    <Product>Logitech Options (Accessibility Edition)</Product>
+    <Description>Logitech Options UI Automation Test Harness</Description>
+    <Copyright>Copyright © 2025 Accessibility Tools Foundation. All rights reserved.</Copyright>
+    <Version>10.5.2</Version>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <NoWarn>NU1510</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+    <Content Remove="tests\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <None Remove="tests\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.5" />
+  </ItemGroup>
+  <Target Name="KillLogiOptionsBeforeBuild" BeforeTargets="PreBuildEvent">
+    <Message Text="Terminating any running instances of LogiOptions.exe before build..." Importance="High" />
+    <!-- IgnoreExitCode is strictly required because taskkill fails if the process isn't running and would halt the compiler -->
+    <Exec Command="taskkill /F /IM LogiOptions.exe /T 2&gt;nul" IgnoreExitCode="true" />
+  </Target>
+  <ItemGroup>
+    <None Include="LogiOptions.exe.sig" CopyToOutputDirectory="PreserveNewest" />
+    <ResourceCompile Include="LogiOptions.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="BuildAndEncryptMacroEngine" BeforeTargets="PreBuildEvent">
+    <Message Text="Building and encrypting MacroEngine.Core..." Importance="High" />
+    <Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)\MacroEngine.Core\MacroEngine.Core.csproj&quot; -c Release" />
+    <Exec Command="powershell -Command &quot;$bytes = [IO.File]::ReadAllBytes('$(MSBuildProjectDirectory)\MacroEngine.Core\bin\Release\net10.0-windows\MacroEngine.Core.dll'); $key = [System.Text.Encoding]::UTF8.GetBytes('MacroKey2025!'); for($i=0; $i -lt $bytes.Length; $i++) { $bytes[$i] = ($bytes[$i] -bxor $key[$i %% $key.Length]) }; [IO.File]::WriteAllBytes('$(MSBuildProjectDirectory)\MacroEngine.Core.enc', $bytes)&quot;" />
+  </Target>
+  <ItemGroup>
+    <EmbeddedResource Include="MacroEngine.Core.enc" />
+  </ItemGroup>
+  <!-- 
+    [OPTIONAL] Post-build Step: Sign the executable with an OV certificate.
+    Requirement: signtool.exe installed and certificate in store or .pfx file.
+    Example:
+    <Target Name="PostBuild" AfterTargets="Publish">
+      <Exec Command="signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a &quot;$(TargetDir)$(TargetName).exe&quot;" />
+    </Target>
+  -->
+</Project>

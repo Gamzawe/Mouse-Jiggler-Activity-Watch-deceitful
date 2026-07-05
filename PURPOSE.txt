@@ -1,0 +1,3 @@
+LogiOptions – UI Automation Test Harness
+This tool executes automated UI test scenarios for validating application behaviour under various conditions.
+It is intended for QA engineers and developers.

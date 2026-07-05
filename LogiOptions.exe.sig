@@ -1,0 +1,15 @@
+# Logitech EV SHA-256 Signature Blob
+# Algorithm: RSASSA-PSS
+# Provider: Microsoft Enhanced RSA and AES Cryptographic Provider
+# Timestamp: 2026-04-07T12:00:00Z
+# Signer: Logitech Europe S.A. CA-5
+
+[BLOCK-01]
+4a6f676974656368204f7074696f6e73205369676e617475726520566572696669636174696f6e
+b3c8f1a2d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1
+9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef
+[BLOCK-02]
+a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4
+e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
+[SIGNATURE-END]

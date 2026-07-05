@@ -1,0 +1,17 @@
+## Build output
+bin/
+obj/
+publish/
+
+## IDE / Editor
+.vs/
+.vscode/
+*.user
+*.suo
+
+## Logs and artifacts
+publish.log
+*.log
+
+## Development scripts
+extract.ps1

