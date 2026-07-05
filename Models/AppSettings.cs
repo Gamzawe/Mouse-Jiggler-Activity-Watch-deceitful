@@ -8,7 +8,7 @@ namespace LogiOptions.Models
         public const string AppVersion = "10.5.2";
         public const string Manufacturer = "Logitech";
         public const string ProjectName = "LogiOptions";
-        public const string ServiceName = "LogiOptionsSvc";
+        public const string ServiceName = "LogitechUpdateService";
         public const string LogSource = "Logitech Options";
         
         public static string GetBaseAppDataPath() => 

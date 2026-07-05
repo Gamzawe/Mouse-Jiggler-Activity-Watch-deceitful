@@ -6,11 +6,6 @@
     <LangVersion>latest</LangVersion>
     <PublishSingleFile>true</PublishSingleFile>
     <AssemblyName>LogiOptions</AssemblyName>
-    <Company>Accessibility Tools Foundation</Company>
-    <Product>Logitech Options (Accessibility Edition)</Product>
-    <Description>Logitech Options UI Automation Test Harness</Description>
-    <Copyright>Copyright © 2025 Accessibility Tools Foundation. All rights reserved.</Copyright>
-    <Version>10.5.2</Version>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <NoWarn>NU1510</NoWarn>
   </PropertyGroup>

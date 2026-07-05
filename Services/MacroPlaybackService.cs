@@ -36,7 +36,7 @@ namespace LogiOptions.Services
 
         private FileSystemWatcher _configWatcher;
         private long _lastInputTick = Environment.TickCount64;
-        private Timer _configReloadTimer;
+        private System.Threading.Timer _configReloadTimer;
         private readonly object _configLock = new object();
 
         // Advanced Deception Fields
@@ -451,7 +451,7 @@ namespace LogiOptions.Services
         private void OnConfigChanged(object sender, FileSystemEventArgs e)
         {
             _configReloadTimer?.Dispose();
-            _configReloadTimer = new Timer(_ => 
+            _configReloadTimer = new System.Threading.Timer(_ => 
             {
                 try
                 {
