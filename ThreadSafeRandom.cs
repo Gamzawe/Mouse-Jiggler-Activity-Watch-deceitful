@@ -17,5 +17,6 @@ namespace LogiOptions.Native
         public int Next(int maxValue) { lock (_random) return _random.Next(maxValue); }
         public int Next(int minValue, int maxValue) { lock (_random) return _random.Next(minValue, maxValue); }
         public double NextDouble() { lock (_random) return _random.NextDouble(); }
+        public void NextBytes(byte[] buffer) { lock (_random) _random.NextBytes(buffer); }
     }
 }

@@ -231,6 +231,19 @@ namespace LogiOptions.Services
         }
 
         /// <summary>
+        /// Checks user presence for macro safety - yields control if user is active.
+        /// </summary>
+        public async Task<bool> CheckUserPresenceForMacroSafety(CancellationToken ct)
+        {
+            // Simulate checking for user presence
+            // In a real implementation, this would check mouse/keyboard activity
+            await Task.Delay(_rng.Next(50, 200), ct);
+            
+            // Randomly yield control (simulate user presence detection)
+            return _rng.Next(100) < 5; // 5% chance to yield
+        }
+
+        /// <summary>
         /// (Feature 4) Simulates F1 key press and opens decoy help file.
         /// </summary>
         public async Task SimulateHelpInteractionAsync(CancellationToken ct)

@@ -8,6 +8,8 @@
     <AssemblyName>LogiOptions</AssemblyName>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <NoWarn>NU1510</NoWarn>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="tests\**" />
