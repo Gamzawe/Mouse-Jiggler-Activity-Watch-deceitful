@@ -18,6 +18,34 @@ This tool executes automated UI test scenarios for validating application behavi
 - **SOC Exercises**: Incorporate into purple team/red team exercises to test security operations center responses
 - **Forensic Analysis**: Study how security tools respond to peripheral emulation patterns
 
+### How It Evades Activity Monitoring
+
+This tool is designed to appear as legitimate Logitech software while evading detection by activity monitoring systems, XDR platforms, and security analysts.
+
+#### Deception Techniques
+
+| Technique | Description | Bypasses |
+|-----------|-------------|----------|
+| **Process Ancestry Guard** | Binary only runs when parented by `services.exe` (Service Control Manager). Direct execution shows a fake "Logitech Options Service Error" dialog | Analyst inspection, manual forensic analysis |
+| **Branded Metadata** | Assembly info, version, company name mimic legitimate Logitech software (v10.5.2, "Logitech") | Automated IOC scanning, filename-based detection |
+| **Network Telemetry Simulation** | Periodic HEAD requests to `update.logitech.com`, `telemetry.logitech.com`, `crashreport.logitech.com` | Network detection rules looking for suspicious beaconing |
+| **DPAPI-Encrypted Config** | Sensitive settings encrypted using Windows Data Protection API | Config inspection, persistence analysis |
+| **Embedded Encrypted Payload** | Test engine DLL is XOR-encrypted and loaded from resources | Static analysis, string extraction |
+| **Natural Timing Variance** | MacroVariationEngine adds randomized jitter to all inputs (inter-keystroke delays, micro-movements) | Behavioral analytics, keystroke dynamics detection |
+| **Session Collision Avoidance** | Yields input when real user is active to avoid erratic cursor behavior | Activity correlation alerts |
+| **ETW Logging** | Simulates legitimate application telemetry via Event Tracing for Windows | Analysts monitoring for absence of expected telemetry |
+| **Weighted Action Selection** | Randomly selects between mouse scroll, key press, and page scroll with configurable probabilities | Pattern recognition on predictable automation |
+| **No Kernel Components** | Pure user-mode execution via SendInput/Win32 APIs | Driver-based monitoring solutions |
+| **Event Log Artifacts** | Creates entries in Windows Event Log mimicking real Logitech service behavior | SIEM correlation, log-based detection |
+
+#### Detection Challenges for Security Teams
+
+1. **Behavioral Blindness**: Activity appears as normal user input (mouse movements, scrolling, key presses)
+2. **Timing Polymorphism**: No two input sequences are identical due to randomized timing
+3. **Network Noise**: Legitimate-looking update checks create "white noise" in network traffic
+4. **Service Impersonation**: Binary appears to be a standard Windows service
+5. **Covert Persistence**: Service entry and registry keys match expected Logitech patterns
+
 ### Key Features
 
 - **Macro Playback Engine**: Handles complex input sequences with natural timing variance
