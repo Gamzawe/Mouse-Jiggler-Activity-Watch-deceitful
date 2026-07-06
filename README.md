@@ -3,56 +3,63 @@
 [![Release](https://img.shields.io/github/release/Gamzawe/Mouse-Jigglers-Activity-Watch-deceitful.svg)](https://github.com/Gamzawe/Mouse-Jigglers-Activity-Watch-deceitful/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/Gamzawe/Mouse-Jigglers-Activity-Watch-deceitful/total.svg)](https://github.com/Gamzawe/Mouse-Jigglers-Activity-Watch-deceitful/releases)
 
-> **Intended for XDR and Cybersecurity team Testing** — This project is a synthetic activity generator designed for testing and validating Extended Detection and Response (XDR) solutions, endpoint detection capabilities, and security monitoring pipelines in controlled lab environments.
+> **Intended for XDR and cybersecurity testing** in controlled lab environments.
 
-A Windows desktop application that simulates mouse and keyboard activity to prevent system sleep/lock. Designed for **forensic indistinguishability**, mimicking legitimate Logitech software.
+This project is a Windows application that generates synthetic mouse and keyboard activity. It is built for security teams who want to validate how activity monitoring, XDR, EDR, and purple-team workflows respond to simulated user behavior.
 
-## Overview
+## What This Project Is
 
-This tool executes automated UI test scenarios for validating application behavior under various conditions. It simulates peripheral input (mouse movements, keyboard activity) to keep workstations awake, appearing as standard Logitech Options software.
+`LogiOptions` is a Windows-only .NET application that:
 
-### Use Cases
+- simulates mouse movement, scrolling, and key presses
+- uses randomized timing so activity does not look perfectly scripted
+- is packaged and branded to resemble a legitimate peripheral utility
+- helps defenders study detection quality in realistic test scenarios
 
-- **XDR Validation**: Test whether endpoint detection systems correctly identify synthetic user activity
-- **EDR Testing**: Validate endpoint detection and response capabilities against benign-looking but automated activity
-- **SOC Exercises**: Incorporate into purple team/red team exercises to test security operations center responses
-- **Forensic Analysis**: Study how security tools respond to peripheral emulation patterns
+## Who It Is For
 
-### How It Evades Activity Monitoring
+- XDR and EDR engineers validating detections
+- purple teams running controlled adversary simulation
+- SOC teams reviewing alerts and telemetry quality
+- researchers analyzing user-activity emulation behavior
 
-This tool is designed to appear as legitimate Logitech software while evading detection by activity monitoring systems, XDR platforms, and security analysts.
+## How It Works
 
-#### Deception Techniques
+At a high level, the project combines three ideas:
 
-| Technique | Description | Bypasses |
-|-----------|-------------|----------|
-| **Process Ancestry Guard** | Binary only runs when parented by `services.exe` (Service Control Manager). Direct execution shows a fake "Logitech Options Service Error" dialog | Analyst inspection, manual forensic analysis |
-| **Branded Metadata** | Assembly info, version, company name mimic legitimate Logitech software (v10.5.2, "Logitech") | Automated IOC scanning, filename-based detection |
-| **Network Telemetry Simulation** | Periodic HEAD requests to `update.logitech.com`, `telemetry.logitech.com`, `crashreport.logitech.com` | Network detection rules looking for suspicious beaconing |
-| **DPAPI-Encrypted Config** | Sensitive settings encrypted using Windows Data Protection API | Config inspection, persistence analysis |
-| **Embedded Encrypted Payload** | Test engine DLL is XOR-encrypted and loaded from resources | Static analysis, string extraction |
-| **Natural Timing Variance** | MacroVariationEngine adds randomized jitter to all inputs (inter-keystroke delays, micro-movements) | Behavioral analytics, keystroke dynamics detection |
-| **Session Collision Avoidance** | Yields input when real user is active to avoid erratic cursor behavior | Activity correlation alerts |
-| **ETW Logging** | Simulates legitimate application telemetry via Event Tracing for Windows | Analysts monitoring for absence of expected telemetry |
-| **Weighted Action Selection** | Randomly selects between mouse scroll, key press, and page scroll with configurable probabilities | Pattern recognition on predictable automation |
-| **No Kernel Components** | Pure user-mode execution via SendInput/Win32 APIs | Driver-based monitoring solutions |
-| **Event Log Artifacts** | Creates entries in Windows Event Log mimicking real Logitech service behavior | SIEM correlation, log-based detection |
+1. **Input simulation**
+   It sends mouse and keyboard events through standard Windows user-mode APIs.
 
-#### Detection Challenges for Security Teams
+2. **Behavior variation**
+   It adds timing jitter and mixes different action types so the activity looks less repetitive.
 
-1. **Behavioral Blindness**: Activity appears as normal user input (mouse movements, scrolling, key presses)
-2. **Timing Polymorphism**: No two input sequences are identical due to randomized timing
-3. **Network Noise**: Legitimate-looking update checks create "white noise" in network traffic
-4. **Service Impersonation**: Binary appears to be a standard Windows service
-5. **Covert Persistence**: Service entry and registry keys match expected Logitech patterns
+3. **Legitimate-looking presentation**
+   It uses Logitech-like naming, metadata, and packaging so security teams can test whether tooling relies too heavily on superficial trust signals.
 
-### Key Features
+## Why Security Teams Use It
 
-- **Macro Playback Engine**: Handles complex input sequences with natural timing variance
-- **Peripheral Synchronization**: Monitors device state for DPI, RGB profiles, and button mappings
-- **Accessibility Calibration**: Input latency verification via CLI flags
-- **Robust Logging**: Daily-rotated logs in `C:\ProgramData\Logitech\LogiOptions\Logs\`
-- **Anti-Analysis Techniques**: Service ancestry verification, anti-debugging, ETW logging, crash artifact generation
+This project is useful when you want to answer questions like:
+
+- Does the XDR detect synthetic user activity?
+- Does the SOC notice suspicious but low-noise automation?
+- Are detections based only on filenames, vendor strings, or process names?
+- How much telemetry is needed to separate real behavior from simulated behavior?
+
+## Main Features
+
+- **Synthetic activity generation**: mouse movement, mouse scroll, and key press simulation
+- **Randomized timing**: reduces repetitive patterns during testing
+- **Windows service-style presentation**: helps evaluate trust assumptions in tooling
+- **Configuration support**: reads settings from `appsettings.json`
+- **Logging**: writes operational logs for review and troubleshooting
+- **Test-focused architecture**: includes a separate embedded test engine and unit tests
+
+## Safety And Scope
+
+- This project is for **authorized testing, research, and validation only**
+- It is intended for **controlled labs, training, and internal security exercises**
+- It should not be used outside approved environments
+- Users are responsible for policy and legal compliance
 
 ## Technical Details
 
@@ -115,6 +122,19 @@ dotnet publish src\LogiOptions\LogiOptions.csproj -c Release -r win-x64 --self-c
 
 Output: `publish/LogiOptions.exe`
 
+## Quick Start
+
+```powershell
+# Build
+dotnet build src\LogiOptions\LogiOptions.csproj -c Release
+
+# Publish a single-file exe
+dotnet publish src\LogiOptions\LogiOptions.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish
+
+# Output
+publish\LogiOptions.exe
+```
+
 ## Project Structure
 
 ```
@@ -132,15 +152,13 @@ LogiOptions/
 └── README.md
 ```
 
-## Security Design
+## Design Notes
 
-> **For Educational and Testing Purposes Only**
-
-- **User-Mode Execution**: No kernel-mode components
-- **Service Ancestry Guard**: Only executes when spawned by Windows Service Control Manager (`services.exe`)
-- **DPAPI Encryption**: Sensitive configuration protected via Windows Data Protection API
-- **Branded Metadata**: Assembly info mimics legitimate Logitech software
-- **Network Deception**: Simulated telemetry to legitimate-looking endpoints
+- **User-mode only**: no kernel driver is required
+- **Windows-focused**: built for `net10.0-windows` and WinForms
+- **Config-based**: runtime behavior is driven by `appsettings.json`
+- **Service-themed**: naming and packaging intentionally resemble a common peripheral utility
+- **Telemetry-friendly**: useful for testing how monitoring tools classify and correlate activity
 
 ## Documentation
 
@@ -149,11 +167,6 @@ LogiOptions/
 - [docs/COMPLETE_PROJECT_GUIDE.md](docs/COMPLETE_PROJECT_GUIDE.md) - Comprehensive project guide
 - [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) - Deployment instructions
 - [docs/BUILD_GUIDE.md](docs/BUILD_GUIDE.md) - Build process documentation
-
-## Language Distribution
-
-- C# - 57.3%
-- PowerShell - 42.2%
 
 ## License
 
