@@ -75,6 +75,15 @@ The project uses MSBuild and includes PowerShell build scripts:
 dotnet build src\LogiOptions\LogiOptions.csproj -c Release
 ```
 
+### Publishing
+
+```powershell
+# Publish as self-contained single-file executable (recommended)
+dotnet publish src\LogiOptions\LogiOptions.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish
+```
+
+Output: `publish/LogiOptions.exe`
+
 ## Project Structure
 
 ```

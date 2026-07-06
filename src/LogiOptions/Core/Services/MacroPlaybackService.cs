@@ -31,8 +31,10 @@ namespace LogiOptions.Services
         private readonly ThreadSafeRandom _random;
         private volatile int _minInterval = 30000;
         private volatile int _maxInterval = 90000;
+#pragma warning disable CS0414 // Reserved for future mouse interval configuration
         private readonly int _mouseMinInterval = 5000;
         private readonly int _mouseMaxInterval = 10000;
+#pragma warning restore CS0414
 
         private FileSystemWatcher _configWatcher;
         private long _lastInputTick = Environment.TickCount64;

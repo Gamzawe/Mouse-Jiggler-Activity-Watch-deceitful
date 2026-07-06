@@ -7,7 +7,7 @@
     <PublishSingleFile>true</PublishSingleFile>
     <AssemblyName>LogiOptions</AssemblyName>
     <ApplicationIcon>Resources\app.ico</ApplicationIcon>
-    <NoWarn>NU1510</NoWarn>
+    <NoWarn>NU1510;CA1416</NoWarn>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <RootNamespace>LogiOptions</RootNamespace>
