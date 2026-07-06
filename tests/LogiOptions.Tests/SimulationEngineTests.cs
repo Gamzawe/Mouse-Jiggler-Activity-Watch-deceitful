@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AudioTelemetrySvc.Models;
-using AudioTelemetrySvc.Native;
-using AudioTelemetrySvc.Services;
+using LogiOptions.Models;
+using LogiOptions.Native;
+using LogiOptions.Services;
 using Xunit;
 
-namespace AudioTelemetrySvc.Tests
+namespace LogiOptions.Tests
 {
     public class SimulationEngineTests
     {
-        private SimulationEngine CreateEngine(RecordingInputInjector injector, int seed = 42)
-            => new SimulationEngine(injector, new ThreadSafeRandom(seed));
+        private MacroPlaybackEngine CreateEngine(RecordingInputInjector injector, int seed = 42)
+            => new MacroPlaybackEngine(injector, new ThreadSafeRandom(seed));
 
         // ────────────────────────────────────────────
         // Constructor validation
@@ -41,7 +41,7 @@ namespace AudioTelemetrySvc.Tests
             var injector = new RecordingInputInjector();
             var engine = CreateEngine(injector);
 
-            await engine.SimulateKeyPressAsync(NativeMethods.VK_SCROLL);
+            await engine.PlaybackKeyPressAsync(NativeMethods.VK_SCROLL);
 
             Assert.Equal(2, injector.Events.Count);
             Assert.Equal(InputEventType.KeyDown, injector.Events[0].Type);
@@ -56,7 +56,7 @@ namespace AudioTelemetrySvc.Tests
             var injector = new RecordingInputInjector();
             var engine = CreateEngine(injector);
 
-            await engine.SimulateKeyPressAsync(NativeMethods.VK_NEXT);
+            await engine.PlaybackKeyPressAsync(NativeMethods.VK_NEXT);
 
             Assert.All(injector.Events, ev => Assert.Equal(NativeMethods.VK_NEXT, ev.vk));
         }
@@ -67,7 +67,7 @@ namespace AudioTelemetrySvc.Tests
             var injector = new RecordingInputInjector();
             var engine = CreateEngine(injector);
 
-            await engine.SimulateKeyPressAsync(NativeMethods.VK_PRIOR);
+            await engine.PlaybackKeyPressAsync(NativeMethods.VK_PRIOR);
 
             Assert.All(injector.Events, ev => Assert.Equal(NativeMethods.VK_PRIOR, ev.vk));
         }
@@ -82,7 +82,7 @@ namespace AudioTelemetrySvc.Tests
             var injector = new RecordingInputInjector();
             var engine = CreateEngine(injector);
 
-            await engine.SimulateMouseScrollAsync();
+            await engine.PlaybackMouseScrollAsync();
 
             Assert.NotEmpty(injector.Events);
             Assert.All(injector.Events, ev => Assert.Equal(InputEventType.MouseWheel, ev.Type));
@@ -94,7 +94,7 @@ namespace AudioTelemetrySvc.Tests
             var injector = new RecordingInputInjector();
             var engine = CreateEngine(injector);
 
-            await engine.SimulateMouseScrollAsync();
+            await engine.PlaybackMouseScrollAsync();
 
             Assert.All(injector.Events, ev => Assert.Equal(0, ev.wheelDelta % 120));
         }
@@ -109,7 +109,7 @@ namespace AudioTelemetrySvc.Tests
             var injector = new RecordingInputInjector();
             var engine = CreateEngine(injector);
 
-            await engine.SimulateMouseMovementAsync();
+            await engine.SyncPeripheralStateAsync();
 
             Assert.NotEmpty(injector.Events);
             Assert.All(injector.Events, ev => Assert.Equal(InputEventType.MouseMove, ev.Type));
@@ -122,7 +122,7 @@ namespace AudioTelemetrySvc.Tests
             var engine = CreateEngine(injector);
 
             var before = injector.CursorPosition;
-            await engine.SimulateMouseMovementAsync();
+            await engine.SyncPeripheralStateAsync();
 
             // After many micro-moves the cursor should have shifted
             Assert.True(injector.CursorPosition != before, "Cursor should have moved.");
@@ -149,7 +149,7 @@ namespace AudioTelemetrySvc.Tests
             for (int i = 0; i < 20; i++)
             {
                 injector.Clear();
-                await engine.SimulatePageScrollAsync();
+                await engine.PlaybackPageScrollAsync();
 
                 // Check the VK used
                 var keyDown = injector.Events.First(e => e.Type == InputEventType.KeyDown);
@@ -176,7 +176,7 @@ namespace AudioTelemetrySvc.Tests
             for (int i = 0; i < 30; i++)
             {
                 injector.Clear();
-                await engine.SimulatePageScrollAsync();
+                await engine.PlaybackPageScrollAsync();
                 var keyDown = injector.Events.First(e => e.Type == InputEventType.KeyDown);
                 keysUsed.Add(keyDown.vk);
             }
@@ -205,7 +205,7 @@ namespace AudioTelemetrySvc.Tests
             for (int i = 0; i < runs; i++)
             {
                 injector.Clear();
-                string action = await engine.ExecuteTickAsync();
+                string action = await engine.ExecutePlaybackTickAsync();
                 counts[action]++;
             }
 
@@ -227,7 +227,7 @@ namespace AudioTelemetrySvc.Tests
             for (int i = 0; i < 100; i++)
             {
                 injector.Clear();
-                string action = await engine.ExecuteTickAsync();
+                string action = await engine.ExecutePlaybackTickAsync();
                 Assert.NotEqual("KeyPress", action);
             }
         }
@@ -245,7 +245,7 @@ namespace AudioTelemetrySvc.Tests
             for (int i = 0; i < 20; i++)
             {
                 injector.Clear();
-                string action = await engine.ExecuteTickAsync();
+                string action = await engine.ExecutePlaybackTickAsync();
                 Assert.Equal("MouseScroll", action);
             }
         }

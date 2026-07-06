@@ -1,18 +1,38 @@
-## Build output
+# Build outputs
 bin/
 obj/
 publish/
-Releases/
+publish.log
+**/bin/**/*
+**/obj/**/*
 
-## IDE / Editor
+# IDE / Editor
 .vs/
 .vscode/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
+[Tt]humbs.db
 
-## Logs and artifacts
-publish.log
+# NuGet
+*.nupkg
+**/packages/*
+
+# Test results
+TestResults/
+*.trx
+coverage*/
+
+# Logs
 *.log
+Logs/
 
-## Development scripts
-extract.ps1
+# OS artifacts
+.DS_Store
+Desktop.ini
+
+# Project-specific build artifacts
+Releases/
+*.enc
+*.cr

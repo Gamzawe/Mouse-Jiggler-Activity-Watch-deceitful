@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <RootNamespace>LogiOptions.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,8 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AudioTelemetrySvc.csproj" />
+    <ProjectReference Include="..\..\src\LogiOptions\LogiOptions.csproj" />
   </ItemGroup>
-
 
 </Project>

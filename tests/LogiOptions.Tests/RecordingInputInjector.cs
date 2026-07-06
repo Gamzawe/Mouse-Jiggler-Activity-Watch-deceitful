@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Drawing;
-using AudioTelemetrySvc.Native;
+using LogiOptions.Native;
 
-namespace AudioTelemetrySvc.Tests
+namespace LogiOptions.Tests
 {
     /// <summary>
     /// Records every input call for assertion. Thread-safe enough for single-threaded test runs.

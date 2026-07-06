@@ -1,92 +1,175 @@
-# Step-by-Step Build Tutorial: AudioTelemetrySvc
+# LogiOptions Build Guide
 
-This guide takes you strictly from raw source code to the finished `.msi` enterprise deployment package for the Logitech-branded background utility.
+This guide will help you build the LogiOptions project from source. The project has a complex build configuration due to its advanced deception features.
 
-## Step 1: Prepare the Environment
+## Prerequisites
 
-Before you compile anything, ensure your host has the requisite SDKs:
-1.  **Visual Studio 2022 Community/Pro:** Installed with the `"Desktop development with C++"` and `"Windows Driver Development"` workloads.
-2.  **Windows Driver Kit (WDK):** Ensure it matches your target Windows SDK version.
-3.  **.NET 10 SDK:** Required for the `AudioTelemetrySvc` core.
-4.  **WiX Toolset v3.11:** Ensure `candle.exe` and `light.exe` are in your System PATH.
+1. **.NET 10.0 SDK** - Already installed on your system
+2. **PowerShell** - For running build scripts
+3. **Administrator privileges** - Not required for building, but needed for deployment
 
----
+## Build Methods
 
-## Step 2: Build the Kernel Driver (`LogiLDA.sys`)
+### Method 1: Manual Build (Recommended for Developers)
 
-The driver masquerades as the Logitech Lead-In Device Architect.
-
-1. Open Visual Studio 2022.
-2. Open the solution or create an **Empty WDF KMDF Driver** project named `LogiLDA`.
-3. Add the following from the `driver/` directory:
-    * `LogiLDA.c`, `LogiLDA.h`, `LogiLDA.rc`, `LogiLDA.inf`.
-4. Configure for **Release | x64**.
-5. Set properties:
-    * **C/C++ -> General -> Treat Warnings As Errors**: `No`.
-    * **Driver Settings -> Target OS Version**: `Windows 10 or later`.
-6. **Build Solution**. The output `LogiLDA.sys` and `LogiLDA.inf` will be in `x64\Release\LogiLDA\`.
-
----
-
-## Step 3: Generate the Catalog File (`LogiLDA.cat`)
-
-Modern Windows requires a signed catalog file for driver installation.
-
-1. Open the **"x64 Native Tools Command Prompt for VS 2022"** as Administrator.
-2. Navigate to your build output:
-   ```cmd
-   cd d:\config\driver\
-   ```
-3. Run `Inf2Cat`:
-   ```cmd
-   Inf2Cat.exe /driver:.\ /os:10_x64,10_11_x64
-   ```
-4. This creates `LogiLDA.cat`. Ensure both the `.sys` and `.cat` are eventually signed with a trusted certificate for production use.
-
----
-
-## Step 4: Build the Headless Simulator (Native AOT)
-
-Compile the C# service into a standalone, obfuscated native executable.
-
-1. Open a terminal in `d:\config\`.
-2. Run the publish command:
-   ```cmd
-   dotnet publish -c Release -p:PublishAot=true -r win-x64 --self-contained true -o ./publish
-   ```
-3. The output binary will be named **`LogiOptions.exe`** (Standardized name for forensic deception).
-4. Verify the binary version via CLI:
-   ```cmd
-   ./publish/LogiOptions.exe --version
-   ```
-
----
-
-## Step 5: Wrap the MSI Installer with WiX
-
-The installer bundles the driver, the executable, and the registry authorization keys.
-
-1. Ensure `installer.wxs` is configured to point to your `publish/LogiOptions.exe` and `driver/LogiLDA.sys`.
-2. Compile the installer:
-   ```cmd
-   candle.exe -ext WixDifxAppExtension -ext WixFirewallExtension installer.wxs
-   ```
-3. Link the installer:
-   ```cmd
-   light.exe -ext WixDifxAppExtension -ext WixFirewallExtension installer.wixobj -o LogiOptionsSetup.msi
-   ```
-
----
-
-## Final Validation
-
-To test the deployment silently:
-```cmd
-msiexec /i LogiOptionsSetup.msi /qn
+#### Step 1: Clean the project
+```powershell
+# Remove all build artifacts
+Remove-Item -Path "bin", "obj", "MacroEngine.Core\bin", "MacroEngine.Core\obj" -Recurse -Force -ErrorAction SilentlyContinue
 ```
 
-### Verification Checklist:
-- [ ] `Logitech Options Background Utility` service is running in `services.msc`.
-- [ ] `LogiLDA` device appears in Device Manager under "Keyboards".
-- [ ] Registry key `HKLM\Software\LogiHid\Enabled` is set to `1`.
-- [ ] Registry key `HKLM\SYSTEM\CurrentControlSet\Services\LogiLDA\Parameters` contains spoofed metadata.
+#### Step 2: Build MacroEngine.Core separately
+```powershell
+dotnet build "MacroEngine.Core\MacroEngine.Core.csproj" -c Release
+```
+
+#### Step 3: Manually encrypt the DLL
+```powershell
+# Read the DLL bytes
+$dllPath = "MacroEngine.Core\bin\Release\net10.0-windows\MacroEngine.Core.dll"
+$bytes = [System.IO.File]::ReadAllBytes($dllPath)
+
+# XOR encryption key
+$key = [System.Text.Encoding]::UTF8.GetBytes("MacroKey2025!")
+
+# Encrypt the bytes
+for($i = 0; $i -lt $bytes.Length; $i++) {
+    $bytes[$i] = $bytes[$i] -bxor $key[$i % $key.Length]
+}
+
+# Save the encrypted file
+[System.IO.File]::WriteAllBytes("MacroEngine.Core.enc", $bytes)
+```
+
+#### Step 4: Build the main project
+```powershell
+dotnet build -c Release
+```
+
+### Method 2: Using the Build Script
+
+Run the simple build script:
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\SimpleBuild.ps1"
+```
+
+### Method 3: Direct .NET Build
+
+If the above methods fail, try building directly:
+```powershell
+# Build MacroEngine.Core
+dotnet build "MacroEngine.Core\MacroEngine.Core.csproj"
+
+# Then build main project
+dotnet build
+```
+
+## Understanding the Build Issues
+
+The project has a complex build configuration because:
+
+### 1. **Nested Project Structure**
+- Main project: `LogiOptions.csproj`
+- Core engine: `MacroEngine.Core\MacroEngine.Core.csproj`
+- This causes duplicate assembly info generation
+
+### 2. **Encryption Requirement**
+- The `MacroEngine.Core.dll` must be encrypted before embedding
+- Encryption uses XOR with key: `MacroKey2025!`
+- Encrypted file: `MacroEngine.Core.enc`
+
+### 3. **Pre-build Events**
+- The project has custom pre-build events in `.csproj`
+- These handle process termination and encryption
+
+## Alternative: Use Pre-built Binary
+
+If building is too complex, you can:
+
+1. **Download a pre-built version** if available
+2. **Use the deployment script** which will prompt for the executable path
+3. **Build on a different system** and copy the executable
+
+## Build Output
+
+After successful build, you'll find:
+
+```
+bin\Release\net10.0-windows\
+├── LogiOptions.exe              # Main executable
+├── LogiOptions.pdb              # Debug symbols
+├── appsettings.json             # Configuration
+├── test_scenario.json           # Test scenarios
+├── whitelist.sig                # Deception artifact
+├── LogiOptions.exe.sig          # Signature file
+└── LogiOptions.chm              # Help file
+```
+
+## Testing the Build
+
+After building, test the executable:
+
+```powershell
+# Check version
+.\bin\Release\net10.0-windows\LogiOptions.exe --version
+
+# Check help
+.\bin\Release\net10.0-windows\LogiOptions.exe --help
+
+# Test debug purpose
+.\bin\Release\net10.0-windows\LogiOptions.exe --debug-purpose
+```
+
+## Troubleshooting
+
+### "Duplicate assembly attribute" errors
+This is a known issue with nested .NET projects. Solutions:
+
+1. **Clean and rebuild**: Remove all `bin` and `obj` folders
+2. **Build separately**: Build `MacroEngine.Core` first, then main project
+3. **Manual encryption**: Follow Method 1 above
+
+### "Process in use" errors
+The build script tries to terminate running instances:
+```powershell
+taskkill /F /IM LogiOptions.exe /T 2>nul
+```
+
+### Missing dependencies
+Restore packages:
+```powershell
+dotnet restore
+```
+
+## For XDR Testing
+
+Once built, deploy using:
+```powershell
+.\QuickDeploy-LogitechUpdateService.ps1 -Install
+```
+
+When prompted, provide the path:
+```
+bin\Release\net10.0-windows\LogiOptions.exe
+```
+
+## Quick Reference
+
+| Command | Purpose |
+|---------|---------|
+| `dotnet restore` | Restore NuGet packages |
+| `dotnet build` | Build the project |
+| `dotnet build -c Release` | Build in Release mode |
+| `.\SimpleBuild.ps1` | Run automated build |
+| `.\QuickDeploy-LogitechUpdateService.ps1 -Install` | Deploy as service |
+
+## Next Steps After Building
+
+1. **Deploy the service** for XDR testing
+2. **Monitor detection** by your security systems
+3. **Test employee awareness** of the "Logitech update"
+4. **Document results** for security training
+
+---
+
+**Note**: The build complexity is intentional for the deception features. If you encounter persistent issues, consider using a pre-built binary or simplifying the build configuration temporarily.
