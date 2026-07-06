@@ -73,6 +73,33 @@ This project is useful when you want to answer questions like:
 | Installation Path | `C:\Program Files\Logitech\LogiOptions\` |
 | Application Data | `C:\ProgramData\Logitech\LogiOptions\` |
 
+## Defensive Validation Matrix
+
+This table describes the main technical behaviors of the project, what telemetry they may produce, and what XDR, EDR, SOC, and purple teams should validate during testing.
+
+| Area | Technical Implementation | Observable Behavior | Expected Telemetry | Defender Validation Goal |
+|------|--------------------------|---------------------|--------------------|--------------------------|
+| Process Execution | Windows .NET app built for `net10.0-windows` with WinForms and service-style naming | Starts as a standard user-mode Windows process with legitimate-looking metadata | Process creation, image metadata, command line, parent-child relationships | Confirm detections do not rely only on filename, icon, or vendor strings |
+| Input Simulation | Uses user-mode Windows input APIs through the input abstraction layer | Generates mouse movement, scrolling, and keyboard events | Endpoint behavior telemetry, API traces, user activity analytics | Validate whether synthetic input can be distinguished from real interactive usage |
+| Timing Variation | `MacroVariationEngine` adds jitter and timing randomness between actions | Activity appears non-uniform instead of perfectly periodic | Behavioral analytics, sequence timing, activity baselines | Measure whether detections depend on repetitive timing or broader context |
+| Action Selection | Weighted selection mixes scroll, keypress, and movement events | Produces blended interaction patterns over time | Behavior chains, event correlation, session analytics | Test whether monitoring can identify automation across mixed action types |
+| Configuration Loading | Reads runtime settings from `appsettings.json` | Behavior changes based on configuration values | File access events, config reads, app startup telemetry | Ensure config-driven behavior changes are visible to defenders |
+| Local Logging | Writes operational logs for execution and troubleshooting | Produces local file-based logs during operation | File creation, file write, application log content | Check whether endpoint and app logs can be correlated during investigations |
+| Windows Eventing | Uses standard Windows event/logging mechanisms in parts of the app | Creates artifacts that may resemble normal application behavior | Event Log entries, ETW-related traces, host telemetry | Validate whether analysts inspect context instead of assuming legitimacy |
+| Config Protection | Uses Windows DPAPI for protected configuration handling | Sensitive values are not stored as plain text | Crypto API usage, protected data access, file reads | Determine whether protected config usage is monitored when tied to suspicious behavior |
+| Resource Packaging | Bundles supporting resources inside the application layout | Ships as a realistic Windows application package | File inventory, resource metadata, binary inspection results | Verify whether release artifacts are baselined and inspected consistently |
+| Build And Publish | Produces a self-contained single-file Windows executable | Generates portable release artifacts for lab execution | CI logs, file hashes, artifact provenance, signing checks | Confirm release binaries are tracked, hashed, and reviewed before use |
+| Service-Themed Presentation | Uses Logitech-like service naming and application paths | Looks like a benign peripheral utility during initial triage | Registry, service-like naming context, file path telemetry | Test whether trust is granted too quickly based on presentation alone |
+| Lab Validation Workflow | Intended for controlled defensive testing and purple-team exercises | Runs as a realistic simulation artifact in the environment | SIEM events, alert timelines, analyst notes, case records | Evaluate alert quality, triage speed, and investigation completeness |
+
+## Detection Questions To Answer
+
+- Does the platform flag synthetic user activity at the endpoint layer?
+- Can analysts separate simulated interaction from real user interaction?
+- Are trust decisions overly influenced by metadata and packaging?
+- Is there enough telemetry to correlate process, input, configuration, and logging behavior?
+- Do alerts provide enough context for a purple-team review?
+
 ## Command-Line Interface
 
 ```
