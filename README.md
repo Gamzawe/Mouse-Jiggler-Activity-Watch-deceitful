@@ -1,5 +1,8 @@
 # Mouse Jigglers - Activity Watch (Deceitful)
 
+[![Release](https://img.shields.io/github/release/Gamzawe/Mouse-Jigglers-Activity-Watch-deceitful.svg)](https://github.com/Gamzawe/Mouse-Jigglers-Activity-Watch-deceitful/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Gamzawe/Mouse-Jigglers-Activity-Watch-deceitful/total.svg)](https://github.com/Gamzawe/Mouse-Jigglers-Activity-Watch-deceitful/releases)
+
 > **Intended for XDR and Cybersecurity team Testing** — This project is a synthetic activity generator designed for testing and validating Extended Detection and Response (XDR) solutions, endpoint detection capabilities, and security monitoring pipelines in controlled lab environments.
 
 A Windows desktop application that simulates mouse and keyboard activity to prevent system sleep/lock. Designed for **forensic indistinguishability**, mimicking legitimate Logitech software.
